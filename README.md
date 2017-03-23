@@ -22,7 +22,7 @@ SamplingSolution <-
       fold1New <- fold1
       fold2New <- fold2
       
-      # 问题：我是不是把具体的sampling 代码写在". R"里呢
+      # 问题：我是不是把具体的sampling 代码写在". R"里呢，docall后面应该也是在抽样，那这两个有什么区别呢，
       if (!is.null(sampling))
       {
         sourcefile <- paste(sampling, c(".R"), sep="")
