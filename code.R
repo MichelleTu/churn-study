@@ -1,17 +1,11 @@
-# ==============================================
-#  Experimental comparision of Sampling solution 
-# ==============================================
-
 SamplingSolution <- 
-  function(form, data, learner, sampling = NULL,...)
+  function(form, data, ways, sampling = NULL,...)
   {
-    require("caret")
-    source("Numeralize.R")
+    library(caret)
     tgt <- which(names(data) == as.character(form[[2]]))
-    #EX  <- vector("list", 5)
-    EX<-list()
+    EX  <- vector("list", 2)
     
-    for (i in 1:5)
+    for (i in 1:2)
     {
       #data division
       id <- createDataPartition(data[,tgt], p = 1/2, list = FALSE)
@@ -19,6 +13,7 @@ SamplingSolution <-
       fold2 <- data[-id, ]
       fold1New <- fold1
       fold2New <- fold2
+      
       if (!is.null(sampling))
       {
         sourcefile <- paste(sampling, c(".R"), sep="")
@@ -27,13 +22,13 @@ SamplingSolution <-
         fold2New <- do.call(sampling, list(form, fold2, ...))
       }  
       
-      ModelFold1 <- learner$fit(form, fold1New)
-      trainingScoreFold1 <- learner$pred(ModelFold1, fold1)
-      testingScoreFold1  <- learner$pred(ModelFold1, fold2)
+      ModelFold1 <- ways$fit(form, fold1New)
+      trainingScoreFold1 <- ways$pred(ModelFold1, fold1)
+      testingScoreFold1  <- ways$pred(ModelFold1, fold2)
       
-      ModelFold2 <- learner$fit(form, fold2New)
-      trainingScoreFold2 <- learner$pred(ModelFold2, fold2)
-      testingScoreFold2  <- learner$pred(ModelFold2, fold1)
+      ModelFold2 <- ways$fit(form, fold2New)
+      trainingScoreFold2 <- ways$pred(ModelFold2, fold2)
+      testingScoreFold2  <- ways$pred(ModelFold2, fold1)
       EX[[i]] <- 
         list(fold1Label = fold1[, tgt],
              fold2Label = fold2[, tgt],
@@ -46,62 +41,28 @@ SamplingSolution <-
     return(EX)
   }
 
-
-
-#  Logistic regression 
-
-
-Logit <- list(
+# CART
+cart_tree <- list(
   fit = function (form, data) { 
-    model  <- glm(form, family = binomial(link = "logit"), data)
+    library(rpart)
+    model<- rpart(form, data, method = "class")
     return(model)
   },
   pred = function(object, data){
-    out  <- predict(object, data, type = "response") 
-  }
-)
-
-#  Support Vector machine
-
-SVM <- list(
-  fit = function (form, data) { 
-    library("kernlab")
-    dataNumeric <- Numeralize(data, form)
-    model  <- ksvm(form, data = dataNumeric , kernel = "rbfdot", prob.model = TRUE)
-    return(model)
-  },
-  pred = function(object, data){
-    form <- formula(object@terms)
-    dataNumeric <- Numeralize(data, form)
-    out  <- predict(object, dataNumeric, type = "probabilities") 
+    out <- predict(object, newdata = data, type = "prob")
     out <- out[ ,2]
   }
 )
 
-# Decision Tree
-
-Tree <- list(
-  fit = function (form, data) { 
-    library("RWeka")
-    model<- J48(form, data, control = Weka_control(U = TRUE, A = TRUE))
+# C50
+C50_tree <- list(
+  fit = function(form,data){
+    library(C50)
+    model <- C5.0(form, data)
     return(model)
   },
-  pred = function(object, data){
-    out <- predict(object, newdata = data, type = "probability")
-    out <- out[ ,2]
+  pred = function(object,data){
+    out <- predict(object, newdata = data, type = "prob")
+    out <- out[,2]
   }
 )
-
-# Random Forest
-RF <-  list(
-  fit = function (form, data) { 
-    library("randomForest")
-    model<- randomForest(form, data, ntree=40)
-    return(model)
-  },
-  pred = function(object, data){
-    out <- predict(object, data, type = "prob")
-    out <- out[ ,2]
-  }
-)
-
