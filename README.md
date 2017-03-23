@@ -1,103 +1,77 @@
 # churn-study
 library(readr)
 library(rpart)
+library(C50)
 library(ROSE)
 library(pROC)
 library(caret)
 
-Singel_Tree_Solution<- 
-  function(fomula, Churn.data_s, ways, type, ...)
+SamplingSolution <- 
+  function(form, data, ways, sampling = NULL,...)
   {
-    source("??.R")
+    
+    #EX  <- vector("list", 2)
     EX<-list()
     
-    for (i in 1:5)
+    for (i in 1:2)
     {
-      print(i)
       #data division
-      id <- createDataPartition(data[,tgt], p = 1/2, list = FALSE)
+      id <- createDataPartition(data[,churn], p = 1/2, list = FALSE)
       fold1 <- data[id, ]
       fold2 <- data[-id, ]
+      fold1New <- fold1
+      fold2New <- fold2
       
-      Model_Fold1 <- ways$fit(form, fold1, type)
-      trainingScore_Fold1 <- ways$pred(Model_Fold1, fold1)
-      testingScore_Fold1  <- ways$pred(Model_Fold1, fold2)
+      # 问题：我是不是把具体的sampling 代码写在". R"里呢
+      if (!is.null(sampling))
+      {
+        sourcefile <- paste(sampling, c(".R"), sep="")
+        source(sourcefile)
+        fold1New <- do.call(sampling, list(form, fold1, ...))
+        fold2New <- do.call(sampling, list(form, fold2, ...))
+      }  
       
-      ModelFold2 <- ways$fit(form, fold2, type)
-      trainingScore_Fold2 <- learner$pred(Model_Fold2, fold2)
-      testingScore_Fold2  <- learner$pred(Model_Fold2, fold1)
+      ModelFold1 <- ways$fit(form, fold1New)
+      trainingScoreFold1 <- ways$pred(ModelFold1, fold1)
+      testingScoreFold1  <- ways$pred(ModelFold1, fold2)
+      
+      ModelFold2 <- learner$fit(form, fold2New)
+      trainingScoreFold2 <- ways$pred(ModelFold2, fold2)
+      testingScoreFold2  <- ways$pred(ModelFold2, fold1)
       EX[[i]] <- 
-        list(fold1_Label = fold1[, tgt],
-             fold2_Label = fold2[, tgt],
-             fold1_TrainingScore = trainingScore_Fold1,
-             fold2_TrainingScore = trainingScore_Fold2,
-             fold1_TestingScore = testingScore_Fold1,
-             fold2_TestingScore = testingScore_Fold2      
+        list(fold1Label = fold1[, churn],
+             fold2Label = fold2[, churn],
+             fold1TrainingScore = trainingScoreFold1,
+             fold2TrainingScore = trainingScoreFold2,
+             fold1TestingScore = testingScoreFold1,
+             fold2TestingScore = testingScoreFold2      
         )
     }
     return(EX)
   }
 
+# CART
 
-#  prior probability
-
-prior <- list(
-  fit = function (form, data, type) { 
-    source("prior.R")
-    model  <- prior(form, data, type = type)
-  },
-  pred = function(object, data){
-    out  <- predict(object, data, type = "probability") 
-    out <- out[ ,2]
-  }
-)
-
-# loss matrix
-loss_matx <- list(
-  fit = function (form, data, type) { 
-    source("loss_matrix.R")
-    model  <- loss_matix(form, data, type = type)
-  },
-  pred = function(object, data){
-    out  <- predict(object, data, type = "probability") 
-    out <- out[ ,2]
-  }
-)
-
-# oversampling
-oversamp <- list(
-  fit = function (form, data, type) { 
-    source("oversampling.R")
-    model  <- oversampling(form, data)
-  },
-  pred = function(object, data){
-    out  <- predict(object, data, type = "probability") 
-    out <- out[ ,2]
-  }
-)
-
-
-# undersampling
-undersamp <- list(
-  fit = function (form, data, type) { 
-    source("undersampling.R")
-    model  <- undersamping(form, data)
-  },
-  pred = function(object, data){
-    out  <- predict(object, data, type = "probability") 
-    out <- out[ ,2]
-  }
-)
-
-# SMOTE
-smo <- list(
-  fit = function (form, data, type) { 
-    source("smote.R")
-    model  <- smote(form, data, type)
+cart_tree <- list(
+  fit = function (form, data) { 
+    model<- rpart(form, data, method = "class")
     return(model)
   },
   pred = function(object, data){
-    out <- predict(object, data, type = "probability")
+    out <- predict(object, newdata = data, type = "probabillity")
     out <- out[ ,2]
   }
 )
+
+# C50
+c50_tree <- list(
+  fit = function(form,data){
+    model <- C5.0(form, data)
+    return(model)
+  },
+  pred = function(object,data){
+    out <- predict(object, newdata = data, type = "probability")
+    out <- out[,2]
+  }
+)
+# 问题：一运行就是一大段，也没有显示有error，我在console里输入EX回车的话，会说object not found
