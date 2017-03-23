@@ -1,4 +1,4 @@
-library(readr)
+
 library(rpart)
 library(C50)
 library(ROSE)
@@ -9,9 +9,7 @@ SamplingSolution <-
   function(form, data, ways, sampling = NULL,...)
   {
     
-    #EX  <- vector("list", 2)
-    EX<-list()
-    
+    EX  <- vector("list", 2)
     for (i in 1:2)
     {
       #data division
@@ -22,6 +20,7 @@ SamplingSolution <-
       fold2New <- fold2
       
       # 问题：我是不是把具体的sampling 代码写在". R"里呢，docall后面应该也是在抽样，那这两个有什么区别呢，
+      # sampling 代码直接调用
       if (!is.null(sampling))
       {
         sourcefile <- paste(sampling, c(".R"), sep="")
