@@ -33,6 +33,8 @@ SMOTE <-
       data <- data[, cols]
     }
     # generate synthetic minority instances
+    # 问题：这个"SmoteExs.R"是您写的那个SMOTE吗，我先是把它改成 library(DMwR)，后面的SmoteExs改成了SMOTE
+    # 但是SmoteExs的第一个参数感觉和SMOTE不一样
     source("SmoteExs.R")
     if (percOver < 100)
     {
