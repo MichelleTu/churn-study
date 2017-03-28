@@ -14,13 +14,7 @@ SamplingSolution <-
       fold2 <- Churn.data_s[-id,]
       fold1_new <- fold1
       fold2_new <- fold2
-      # 问题：您原来写的createDataPartition后面是churn_data_s[，tgt], 会显示：Error in createDataPartition（...FALSE)  y must be have at least 2 data points
-      # 我就把它改成了现在这样，后面载入"SMOTE.R"时出现错误说cannot coerce type 'closure' to vector of type 'character' 
-      # 我在stackoverflow上查，有人install.packages时遇到同样的问题，说是需要character格式，您前面也确实这样定义的tgt，所以我觉得是因为我没有这样定义churn
-      # 然后我不记得改了那里，突然好了，所以我就没有用character定义churn，但还是比较疑惑
-      
-      
-      
+
       if(!is.null(sampling))
       {
         sourcefile <- paste(sampling, c(".R"), sep = "")
