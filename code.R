@@ -1,12 +1,7 @@
-library(rpart)
-library(C50)
-library(ROSE)
-library(pROC)
-library(caret)
-
 SamplingSolution <- 
   function(form, Churn.data_s, ways, sampling = NULL,...)
   {
+    library(caret)
     tgt <- which(names(data) == as.character(form[[2]]))
     Ex <- vector("list", 2)
     
@@ -14,7 +9,7 @@ SamplingSolution <-
     {
       
       # data division
-      id <- createDataPartition(Churn.data_s$churn, p = 1/2,list = FALSE)
+      id <- createDataPartition(data[,tgt], p = 1/2,list = FALSE)
       fold1 <- Churn.data_s[id,]
       fold2 <- Churn.data_s[-id,]
       fold1_new <- fold1
@@ -28,7 +23,7 @@ SamplingSolution <-
       
       if(!is.null(sampling))
       {
-        sourcefile <- paste(sampling, c("SMOTE.R"), sep = "")
+        sourcefile <- paste(sampling, c(".R"), sep = "")
         source(sourcefile)
         fold1_new <- do.call(sampling, list(form, fold1,...))
         fold2_new <- do.call(sampling, list(form, fold2,...))
@@ -59,6 +54,7 @@ SamplingSolution <-
 # CART
 cart_tree <- list(
   fit = function(form,data){
+    library(rpart)
     model <- rpart(form, data, method = "class")
     return(model)
   },
@@ -71,6 +67,7 @@ cart_tree <- list(
 
 # C50
 C50_tree <-list(
+  library(C50)
   fit = function(form, data){
     model <- C5.0(form, data)
     return(model)
