@@ -4,8 +4,12 @@ SMOTE <-
     
     # find the class variable
     tgt <- which(names(data) == as.character(form[[2]]))
-    classTable <- data.frame(data[,tgt])
+    classTable <- table(data[,tgt])
     numCol <-dim(data)[2]
+    
+    # 问题：classTable <- table(data[,tgt])那句显示错误： Error in data[, tgt] : incorrect number of dimensions 
+    # 我把table改成了data.frame这句没错了，下面那句minClass <- names(which.min(classTable))
+    # 显示错误： Error in which.min(classTable) : (list) object cannot be coerced to type 'double'
     
     #find the minority and majority instances
     minClass <- names(which.min(classTable))
@@ -23,6 +27,10 @@ SMOTE <-
       cols[c(tgt, numCol)] <- cols[c(numCol, tgt)]
       data <- data[ ,cols]
     }
+    
+    # 问题：我把source("SmoteExs.R")改成了library(DMwR),下面的SmoteExs改成了SMOTE，但是感觉这两个函数的参数不同
+    # SMOTE的参数是SMOTE(form, data, perc.over = 200, k = 5, perc.under = 200, learner = NULL, ...)
+    # 所以就不知道dataMIN_select要怎么用
     
     # generate synthetic minority instances
     library(DMwR)
