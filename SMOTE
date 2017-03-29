@@ -10,6 +10,7 @@ SMOTE <-
     # 问题：classTable <- table(data[,tgt])那句显示错误： Error in data[, tgt] : incorrect number of dimensions 
     # 我把table改成了data.frame这句没错了，下面那句minClass <- names(which.min(classTable))
     # 显示错误： Error in which.min(classTable) : (list) object cannot be coerced to type 'double'
+    # 我给tgt试了加as.doouble和as.numeric,错的似乎更离谱了，我就不敢轻举妄动了
     
     #find the minority and majority instances
     minClass <- names(which.min(classTable))
